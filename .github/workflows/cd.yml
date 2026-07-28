@@ -8,6 +8,9 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
 
     steps: 
       - name: Check out code
@@ -20,3 +23,20 @@ jobs:
 
       - name: Build
         run: scripts/buildprod.sh
+      
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
+          service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v3'
+        with:
+          version: '>= 363.0.0'
+
+      - name: 'Use gcloud CLI'
+        run: 'gcloud info'
+
+      - name: GCloud Builds Submit
+        run: gcloud builds submit --tag us-central1-docker.pkg.dev/named-sequencer-503814-m5/notely-ar-repo/calmsea1234/notely:latest .
